@@ -1,0 +1,11 @@
+# compiled modules
+**/**.beam
+
+# manually downloaded input files
+*/input
+
+# automatically downloaded input files
+input*.txt
+
+# don't commit secrets!
+session.txt
