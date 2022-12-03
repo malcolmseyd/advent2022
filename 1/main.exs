@@ -41,8 +41,4 @@ defmodule B do
     |> Enum.take(3)
     |> Enum.sum()
   end
-
-  def add(a, b) do
-    a + b
-  end
 end

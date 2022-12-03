@@ -31,7 +31,7 @@ defmodule Advent do
   end
 
   def uncache(day) do
-    case File.rm("input#{day}.txt") do
+    case File.rm("../input#{day}.txt") do
       :ok ->
         :ok
 
