@@ -1,4 +1,4 @@
-Code.eval_file("../advent.exs")
+Code.eval_file("advent.exs")
 
 day = 5
 
@@ -138,6 +138,10 @@ defmodule A do
     |> Enum.concat()
   end
 end
+
+Advent.input(day)
+|> A.solve()
+|> IO.inspect()
 
 Advent.input(day)
 |> B.solve()

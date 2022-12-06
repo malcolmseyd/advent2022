@@ -1,7 +1,7 @@
 defmodule A do
   def solve do
     elves =
-      File.read!("input")
+      File.read!("input1.txt")
       |> String.split("\n\n")
       |> Enum.map(fn x ->
         x
@@ -22,7 +22,7 @@ end
 defmodule B do
   def solve do
     elves =
-      File.read!("input")
+      File.read!("input1.txt")
       |> String.split("\n\n")
       |> Enum.map(fn x ->
         x
@@ -42,3 +42,7 @@ defmodule B do
     |> Enum.sum()
   end
 end
+
+IO.inspect(A.solve())
+IO.inspect(B.solve())
+

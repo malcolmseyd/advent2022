@@ -3,8 +3,7 @@ HTTPoison.start()
 
 defmodule Advent do
   def input(day) do
-    # for use inside of a subfolder
-    filename = "../input#{day}.txt"
+    filename = file(day)
 
     case File.read(filename) do
       {:ok, contents} ->
@@ -31,7 +30,7 @@ defmodule Advent do
   end
 
   def uncache(day) do
-    case File.rm("../input#{day}.txt") do
+    case File.rm(file(day)) do
       :ok ->
         :ok
 
@@ -41,5 +40,9 @@ defmodule Advent do
       other ->
         other
     end
+  end
+
+  def file(day) do
+    "input#{day}.txt"
   end
 end

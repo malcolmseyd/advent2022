@@ -1,4 +1,4 @@
-Code.require_file("../advent.exs")
+Code.require_file("advent.exs")
 
 defmodule Day6 do
   @day 6

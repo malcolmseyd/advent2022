@@ -1,4 +1,4 @@
-Code.require_file("../advent.exs")
+Code.require_file("advent.exs")
 
 defmodule Main do
   @day 6
@@ -6,7 +6,6 @@ defmodule Main do
   def solve(i) do
     Advent.input(@day)
     |> part(i)
-    |> IO.inspect()
   end
 
   def part(input, 1) do
@@ -16,5 +15,5 @@ defmodule Main do
 end
 
 Main.solve(1)
-Main.solve(2)
+# Main.solve(2)
 IO.puts("done.")

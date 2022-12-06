@@ -9,7 +9,7 @@ defmodule Advent do
   @url "https://adventofcode.com/2022/day/#{@day}/input"
 
   def input(session \\ "") do
-    case File.read("input") do
+    case File.read("input2.txt") do
       {:ok, contents} ->
         contents
 
@@ -135,3 +135,6 @@ defmodule A do
   def move("Y"), do: 2
   def move("Z"), do: 3
 end
+
+IO.inspect(A.solve("input2.txt"))
+IO.inspect(B.solve("input2.txt"))

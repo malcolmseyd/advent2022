@@ -1,4 +1,4 @@
-Code.eval_file("../advent.exs")
+Code.eval_file("advent.exs")
 
 day = 3
 
@@ -78,6 +78,11 @@ defmodule A do
     end
   end
 end
+
+
+Advent.input(day)
+|> A.solve()
+|> IO.inspect()
 
 Advent.input(day)
 |> B.solve()
