@@ -1,71 +1,39 @@
-Code.eval_file("../advent.exs")
+Code.require_file("../advent.exs")
 
-day = 6
+defmodule Day6 do
+  @day 6
 
-defmodule B do
-  def solve(input) do
-    data =
+  def solve(i) do
+    Advent.input(@day)
+    |> part(i)
+    |> IO.inspect()
+  end
+
+  def part(input, 1) do
+    solve(input, 4)
+  end
+
+  def part(input, 2) do
+    solve(input, 14)
+  end
+
+  def solve(input, k) do
+    {_, i} =
       input
       |> String.trim()
       |> to_charlist()
-      |> Enum.chunk_every(14, 1)
+      |> Enum.chunk_every(k, 1)
       |> Enum.with_index()
-      |> find_marker()
+      |> Enum.find(fn {chunk, _} ->
+        length(chunk) == chunk |> MapSet.new() |> MapSet.size()
+      end)
 
     # |> tap(&IO.inspect(&1))
 
-    data
-  end
-
-  def find_marker([]) do
-    throw("Couldn't find code")
-  end
-
-  def find_marker([{chunk, i} | rest]) do
-    letters = MapSet.new(chunk)
-
-    if length(chunk) == MapSet.size(letters) do
-      i + 14
-    else
-      find_marker(rest)
-    end
+    i + k
   end
 end
 
-defmodule A do
-  def solve(input) do
-    data =
-      input
-      |> String.trim()
-      |> to_charlist()
-      |> Enum.chunk_every(4, 1)
-      |> Enum.with_index()
-      |> find_marker()
-
-    # |> tap(&IO.inspect(&1))
-
-    data
-  end
-
-  def find_marker([]) do
-    throw("Couldn't find code")
-  end
-
-  def find_marker([{chunk, i} | rest]) do
-    letters = MapSet.new(chunk)
-
-    if length(chunk) == MapSet.size(letters) do
-      i + 4
-    else
-      find_marker(rest)
-    end
-  end
-end
-
-Advent.input(day)
-|> B.solve()
-|> IO.inspect()
-
-# Advent.uncache(day)
-
+Day6.solve(1)
+Day6.solve(2)
 IO.puts("done.")
