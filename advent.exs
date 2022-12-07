@@ -13,7 +13,7 @@ defmodule Advent do
         url = "https://adventofcode.com/2022/day/#{day}/input"
 
         session =
-          File.read!("../session.txt")
+          File.read!("session.txt")
           |> String.trim()
 
         resp = HTTPoison.get!(url, [], hackney: [cookie: ["session=#{session}"]])
