@@ -1,11 +1,15 @@
 # Lessons learned:
+# - Spend more time in the spec. They literally warned me about the bug that I
+#   encountered but I didn't catch that until after solving. :facepalm:
 # - GETTING IT RIGHT FIRST IS BETTER THAN DEBUGGING. Write tests for every case
 #   that you can think of and make sure your code passes all of these.
 #   Alternatively, constantly tinker with small examples in IEx, as it provides
 #   a tight feedback loop.
 # - DO YOUR RESEARCH ON DEBUGGING TOOLS. This is the second day in a row that I
-#   have spent much longer on debugging my solution than writing it. Every time
-# - your data model doesn't need to be passed through your whole program. Write
+#   have spent much longer on debugging my solution than writing it. Today I
+#   learned about `dbg()` and the Erlang debugger, and both would have made my
+#   problem much easier to solve
+# - Your data model doesn't need to be passed through your whole program. Write
 #   small, focused functions and delegate tasks to functions early. Writing
 #   quick and dirty functions with multiple responsibilities might seem like a
 #   good idea at first, but even for one-off things like an Advent of Code
@@ -14,6 +18,15 @@
 # - Agent is a great escape hatch for state. If you need state to be accessed
 #   in deeply nested parts of your program (in my case, looking for changes),
 #   but changing every call site is awkward, don't! Use a named Agent.
+# - Writing functions for visualizing data makes in easier to solve errors.
+#   Before, I used a CyberChef script to convert my coords from Elixir to CSV,
+#   then imported it to Google Sheets, then made a scatter plot to show where
+#   the knots before. Now, I can call my visualization in the debugger after
+#   prying into the execution.
+#
+# TLDR; use interactive tools that help with testing and debugging instead of
+# staring at the problem. tooling makes your life easier, you shouldn't have to
+# run code in your brain.
 
 Code.require_file("advent.exs")
 
@@ -80,10 +93,6 @@ defmodule Main do
           MapSet.new([{0, 0}])
         },
         fn {dir, steps}, state ->
-          # apply `steps` times
-          # IO.puts("")
-          # IO.inspect({dir, steps})
-
           Enum.reduce(1..steps, state, fn _, {[head_pos | knots], tail_history} ->
             # apply movement to head,
             head = move(head_pos, dir)
@@ -95,35 +104,15 @@ defmodule Main do
             # record tail position
             tail_pos = Enum.at(knots, -1)
             tail_history = MapSet.put(tail_history, tail_pos)
-            # IO.inspect(knots)
-
-            # print_knots(tail_history)
-
-            # last = Agent.get(last_tail, fn x -> x end)
-            # if last && last != tail_pos do
-            #   IO.puts("before")
-            #   print_knots(Agent.get(last_knots, fn x -> x end))
-            #   IO.puts("after")
-            #   print_knots(tail_history)
-            # end
-
-            # Agent.update(last_knots, fn _ -> knots end)
-            # Agent.update(last_tail, fn _ -> tail_pos end)
 
             {knots, tail_history}
           end)
         end
       )
 
-    # |> tap(&IO.inspect(&1))
-
-    # print_knots(tail_history)
-
     tail_history
     |> MapSet.size()
     |> tap(&IO.inspect(&1))
-
-    # print_knots([{4, 8}, {5, 7}, {5, 6}, {5, 5}, {5, 4}, {4, 4}, {3, 4}, {3, 3}, {2, 3}, {2, 2}])
   end
 
   # iterate through all knots, moving them and returning a list of new knots
@@ -135,11 +124,8 @@ defmodule Main do
   end
 
   def trail_knots([head_pos | [tail_pos | knots]], dir, new_knots) do
-    # print_knots([head_pos | [tail_pos | knots]] ++ new_knots)
-    old_tail = tail_pos
     # catch tail up to head
     {head_pos, tail_pos} = trail({head_pos, tail_pos})
-    # IO.inspect({"moved tail:", head_pos, old_tail, tail_pos})
 
     # record head position and make tail the new head
     trail_knots([tail_pos | knots], dir, new_knots ++ [head_pos])
@@ -168,38 +154,49 @@ defmodule Main do
     dx = head_x - tail_x
     dy = head_y - tail_y
 
-    if abs(dx) > 2 or abs(dy) > 2 do
-      IO.puts("WHAT THE HECK, TOO FAR")
-      IO.inspect({head_pos, tail_pos})
-      raise "WHAT THE HECK, TOO FAR"
-    end
-
     # move if too far
-    # if too far in one direction
-    # snap other direction
-    # i.e. too far up, snap x value to head_x
-    # example:
-    #  ......
-    #  ......
-    #  ......
-    #  ....H.
-    #  s..T..
-
-    #  ......
-    #  ......
-    #  ....H.
-    #  ....T.
-    #  s.....
     tail_pos =
       case {dx, dy} do
         # part 2, head can move diagonally now
-        # move up-right
-        {2, 2} -> {head_x - 1, head_y-1}
-        {-2, 2} -> {head_x + 1, head_y-1}
-        {2, -2} -> {head_x - 1, head_y+1}
-        {-2, -2} -> {head_x + 1, head_y+1}
+        # if the previous head was dragged diagonally, drag the tail diagonally too
+        # example:
+        # ......
+        # ....H.
+        # ....1.
+        # .432..
+        # 5.....
 
+        # ....H.
+        # ....1.
+        # ..432.
+        # .5.... <- 5 is dragged diagonally, triggered by a distance from 4 of {2,2}
+        # 6.....
+
+        # move up-right
+        {2, 2} -> {head_x - 1, head_y - 1}
+        # move up-left
+        {-2, 2} -> {head_x + 1, head_y - 1}
+        # move down-right
+        {2, -2} -> {head_x - 1, head_y + 1}
+        # move down-left
+        {-2, -2} -> {head_x + 1, head_y + 1}
+        #
         # part 1, basically just follow the head
+        # if too far in one direction, snap other direction
+        # i.e. too far up, snap x value to head_x
+        # example:
+        #  ......
+        #  ......
+        #  ......
+        #  ....H.
+        #  s..T..
+
+        #  ......
+        #  ......
+        #  ....H.
+        #  ....T. <- H was too far vertically, so T snapped horizontally
+        #  s.....
+
         # move right
         {2, _} -> {head_x - 1, head_y}
         # move left
@@ -215,14 +212,11 @@ defmodule Main do
     {head_pos, tail_pos}
   end
 
-
   def print_knots(knots) do
     {{min_x, _}, {max_x, _}} = Enum.min_max_by(knots, fn {x, _y} -> x end)
     {{_, min_y}, {_, max_y}} = Enum.min_max_by(knots, fn {_x, y} -> y end)
 
     set = MapSet.new(knots)
-
-    # IO.puts("printing...")
 
     grid =
       Enum.map(max_y..min_y, fn y ->
@@ -243,6 +237,6 @@ defmodule Main do
   end
 end
 
-# Main.solve(1)
+Main.solve(1)
 Main.solve(2)
 IO.puts("done.")

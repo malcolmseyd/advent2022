@@ -111,7 +111,7 @@ defmodule Main do
       # [1,2]
       # [3,4]
       # IO.puts("left")
-      IO.inspect({x,y})
+      # IO.inspect({x,y})
       # IO.inspect(input)
       score = score * visibility_score(input, {x, y, h})
       # IO.inspect(score)
