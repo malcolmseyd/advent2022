@@ -5,11 +5,11 @@ Mix.install([
 
 HTTPoison.start()
 
-url = "https://adventofcode.com/2022/leaderboard/self"
+leaderboard_url = "https://adventofcode.com/2022/leaderboard/self"
 session = System.get_env("AOC_SESSION")
 
 %{status_code: 200, body: body} =
-  HTTPoison.get!(url, [], hackney: [cookie: ["session=#{session}"]])
+  HTTPoison.get!(leaderboard_url, [], hackney: [cookie: ["session=#{session}"]])
 
 {:ok, html} = Floki.parse_document(body)
 
@@ -24,8 +24,44 @@ stats_matrix =
   |> String.split("\n")
   |> Enum.map(&String.split(&1))
 
+stats_url = "https://adventofcode.com/2022/stats"
+
+%{status_code: 200, body: body} = HTTPoison.get!(stats_url)
+
+{:ok, html} = Floki.parse_document(body)
+
+global_completions =
+  html
+  |> Floki.find(".stats a")
+  |> Enum.map(fn elem ->
+    [day, p2, p1, _, _] =
+      elem
+      |> Tuple.to_list()
+      |> Enum.at(2)
+
+    day = String.trim(day)
+
+    f = fn p ->
+      {_, _, p} = p
+      [p] = p
+      {p, ""} = Integer.parse(String.trim(p))
+      p
+    end
+
+    p1 = f.(p1)
+    p2 = f.(p2)
+
+    # p1 is people who ONLY did p1, we want anyone who did it
+    # so people who did p2 also did p1
+    {day, to_string(p1 + p2), to_string(p2)}
+  end)
+
 stats_rows =
-  stats_matrix
+  Enum.zip(stats_matrix, global_completions)
+  |> Enum.map(fn {[day, time1, rank1, _, time2, rank2, _], {_, comp1, comp2}} ->
+    # {["9", "00:46:20", "6710", "0", "03:08:04", "11705", "0"], {9, 22900, 15920}}
+  [day, time1, rank1, comp1, time2, rank2, comp2]
+  end)
   |> Enum.map(fn row ->
     {"tr", [],
      Enum.map(row, fn col ->
@@ -42,7 +78,7 @@ header_rows = [
      {"th", [{"colspan", "3"}], ["Part 2"]}
    ]},
   {"tr", [],
-   Enum.map(["Day", "Time", "Rank", "Score", "Time", "Rank", "Score"], fn col ->
+   Enum.map(["Day", "Time", "Rank", "Out of", "Time", "Rank", "Out of"], fn col ->
      {"th", [], [col]}
    end)
    |> Enum.to_list()}
