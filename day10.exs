@@ -1,5 +1,7 @@
 # Lessons learned:
-# - Named atoms can provide a nice escape hatch for state, but use them sparingly. I probably didn't need to use them today, and I did have an issue where my part 1 state bled into part 2
+# - Named atoms can provide a nice escape hatch for state, but use them
+#   sparingly. I probably didn't need to use them today, and I did have an issue
+#   where my part 1 state bled into part 2.
 
 Code.require_file("advent.exs")
 
@@ -35,21 +37,26 @@ defmodule Main do
     # iterate until the machine halts
     Stream.iterate(0, &(&1 + 1))
     |> Enum.reduce_while({state, x, ops}, fn cycle, {state, x, ops} ->
-      sample(cycle + 1, x) # look ahead for the cycle
+      sample(cycle + 1, x) # cycles are zero-indexed in code, 1-indexed in problem
 
       # eval should act like an FSM
       # current_state -> {:cont | :halt, next_state}
       eval({state, x, ops})
     end)
 
-    Agent.get(:samples, fn x -> x end)
+    # clean up global state (yuck!)
+    samples = Agent.get(:samples, fn x -> x end)
+    Agent.stop(:samples)
+    Agent.stop(:timings)
+
+    samples
     |> Enum.reduce(0, fn {x, cycle}, acc -> acc + x * cycle end)
     |> tap(&IO.inspect(&1))
   end
 
   def part(input, 2) do
     # for sampling
-    Agent.start_link(fn -> [] end, name: :crt_samples)
+    Agent.start_link(fn -> [] end, name: :samples)
 
     # register X starts at 1
     x = 1
@@ -67,12 +74,16 @@ defmodule Main do
     Stream.iterate(0, &(&1 + 1))
     |> Enum.reduce_while({state, x, ops}, fn cycle, {state, x, ops} ->
       # eval should act like an FSM
-      # current state -> next state
+      # current_state -> {:cont | :halt, next_state}
       sample_crt(cycle, x)
       eval({state, x, ops})
     end)
 
-    Agent.get(:crt_samples, fn x -> x end)
+    # clean up global state (yuck!)
+    samples = Agent.get(:samples, fn x -> x end)
+    Agent.stop(:samples)
+
+    samples
     |> Enum.reverse()
     |> Enum.map(fn
       true -> ?#
@@ -90,8 +101,20 @@ defmodule Main do
   def sample_crt(cycle, x) do
     pos = rem(cycle, 40)
     on = x >= pos - 1 and x <= pos + 1
-    Agent.update(:crt_samples, fn samples -> [on | samples] end)
+    Agent.update(:samples, fn samples -> [on | samples] end)
   end
+
+  def sample(cycle, x) do
+    timing = Agent.get(:timings, fn [h | _] -> h end)
+
+    if cycle == timing do
+      # record sample
+      Agent.update(:samples, fn samples -> [{x, timing} | samples] end)
+      # update timings
+      Agent.update(:timings, fn [_ | timings] -> timings end)
+    end
+  end
+
 
   def eval({:ready, x, []}) do
     # no more instructions, halt
@@ -115,18 +138,6 @@ defmodule Main do
 
   def apply_op(x, {:addx, num}) do
     {{:adding, x + num}, x}
-  end
-
-  # side effects!
-  def sample(cycle, x) do
-    timing = Agent.get(:timings, fn [h | _] -> h end)
-
-    if cycle == timing do
-      # record sample
-      Agent.update(:samples, fn samples -> [{x, timing} | samples] end)
-      # update timings
-      Agent.update(:timings, fn [_ | timings] -> timings end)
-    end
   end
 
   def parse("noop") do
