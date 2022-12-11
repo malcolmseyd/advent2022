@@ -1,41 +1,26 @@
+# Lessons learned:
+# - It's okay to use Agents for things that feel like they should be side
+#   effects. Yesterday, it was sampling. Today, it was counting. I feel like
+#   it's a similar use case to Haskell's State monad, where you can have mutable
+#   values that aren't really the main point of the problem but should follow
+#   you around everywhere anyways.
+# - Use Maps for complex objects. I ended up using a bunch of nested tuples and
+#   it left a bad taste in my mouth. Passing around big maps and only pulling
+#   out keys that I need seems really appealing, and it's pretty similar to what
+#   TypeScript and Clojure programmers do all the time with no issue.
+# - Don't waste time parsing small input. For this problem, I probably spent
+#   more time writing the parsing code than I would have just manually writing
+#   the input into my program. I know it's less clean and general but for a
+#   "competitive programming" event like this, it's really an option to
+#   consider.
+
 Code.require_file("advent.exs")
 
 defmodule Main do
   @day 11
 
   def solve(i) do
-    example1 = """
-    Monkey 0:
-    Starting items: 79, 98
-    Operation: new = old * 19
-    Test: divisible by 23
-    If true: throw to monkey 2
-    If false: throw to monkey 3
-
-    Monkey 1:
-    Starting items: 54, 65, 75, 74
-    Operation: new = old + 6
-    Test: divisible by 19
-    If true: throw to monkey 2
-    If false: throw to monkey 0
-
-    Monkey 2:
-    Starting items: 79, 60, 97
-    Operation: new = old * old
-    Test: divisible by 13
-    If true: throw to monkey 1
-    If false: throw to monkey 3
-
-    Monkey 3:
-    Starting items: 74
-    Operation: new = old + 3
-    Test: divisible by 17
-    If true: throw to monkey 0
-    If false: throw to monkey 1
-    """
-
     Advent.input(@day)
-    # example1
     |> String.trim()
     |> String.split("\n\n")
     |> Enum.map(fn m ->
@@ -49,18 +34,12 @@ defmodule Main do
   def part(input, 1) do
     Agent.start_link(fn -> %{} end, name: :inspections)
 
-    # {id, items, {operator, operand}, {predicate, true_branch, false_branch}}
-    monkeys =
-      input
-      # |> tap(&IO.inspect(&1))
-
+    monkeys = input
     monkey_ids = Map.keys(monkeys)
 
-    # 20 rounds
+    # number of rounds
     1..20
-    |> Enum.reduce(monkeys, fn round, monkeys ->
-      # IO.puts("round #{round}")
-      # IO.inspect(monkeys)
+    |> Enum.reduce(monkeys, fn _round, monkeys ->
       # each monkey takes a turn
       Enum.reduce(monkey_ids, monkeys, fn id, monkeys ->
         {{^id, op, test}, items} = Map.get(monkeys, id)
@@ -70,8 +49,8 @@ defmodule Main do
           item = trunc(item / 3)
           new_id = pass(item, test)
 
-          # dequeue item from old monkey
           monkeys
+          # dequeue item from old monkey
           |> Map.update!(id, fn {other, [_ | items]} ->
             {other, items}
           end)
@@ -82,7 +61,6 @@ defmodule Main do
         end)
       end)
     end)
-    # |> tap(&IO.inspect(&1))
 
     inspections = Agent.get(:inspections, fn x -> x end)
     Agent.stop(:inspections)
@@ -94,30 +72,23 @@ defmodule Main do
     |> Enum.take(2)
     |> Enum.product()
     |> tap(&IO.inspect(&1))
-
-    # input
   end
 
   def part(input, 2) do
     Agent.start_link(fn -> %{} end, name: :inspections)
 
-    monkeys =
-      input
-      # |> tap(&IO.inspect(&1))
-
+    monkeys = input
     monkey_ids = Map.keys(monkeys)
 
     # cap the value of each item based on the monkeys' test
     predicate_factors =
       Map.values(monkeys)
-    |> Enum.map(fn {{_, _, {pred, _, _}}, _} -> pred end)
-    |> Enum.product()
+      |> Enum.map(fn {{_, _, {pred, _, _}}, _} -> pred end)
+      |> Enum.product()
 
-    # 10000 rounds
+    # iterate through rounds
     1..10000
-    |> Enum.reduce(monkeys, fn round, monkeys ->
-      # IO.puts("round #{round}")
-      # IO.inspect(monkeys)
+    |> Enum.reduce(monkeys, fn _round, monkeys ->
       # each monkey takes a turn
       Enum.reduce(monkey_ids, monkeys, fn id, monkeys ->
         {{^id, op, test}, items} = Map.get(monkeys, id)
@@ -139,6 +110,7 @@ defmodule Main do
         end)
       end)
     end)
+
     # |> tap(&IO.inspect(&1))
 
     inspections = Agent.get(:inspections, fn x -> x end)
