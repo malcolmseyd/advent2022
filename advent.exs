@@ -30,7 +30,6 @@ defmodule Advent do
   end
 
   def uncache(day) do
-    System.cmd
     case File.rm(file(day)) do
       :ok ->
         :ok
