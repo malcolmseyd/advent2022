@@ -30,6 +30,7 @@ defmodule Advent do
   end
 
   def uncache(day) do
+    System.cmd
     case File.rm(file(day)) do
       :ok ->
         :ok
@@ -43,6 +44,11 @@ defmodule Advent do
   end
 
   def file(day) do
-    "input#{day}.txt"
+    day_fmt =
+      day
+      |> Integer.to_string()
+      |> String.pad_leading(2, "0")
+
+    "input#{day_fmt}.txt"
   end
 end

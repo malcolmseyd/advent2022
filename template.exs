@@ -1,7 +1,7 @@
 Code.require_file("advent.exs")
 
 defmodule Main do
-  @day 6
+  @day "CHANGEME"
 
   def solve(i) do
     Advent.input(@day)
