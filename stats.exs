@@ -60,7 +60,22 @@ stats_rows =
   Enum.zip(stats_matrix, global_completions)
   |> Enum.map(fn {[day, time1, rank1, _, time2, rank2, _], {_, comp1, comp2}} ->
     # {["9", "00:46:20", "6710", "0", "03:08:04", "11705", "0"], {9, 22900, 15920}}
-  [day, time1, rank1, comp1, time2, rank2, comp2]
+    # format numbers
+    f = fn s ->
+      s
+      |> String.reverse()
+      |> String.graphemes()
+      |> Enum.chunk_every(3)
+      |> Enum.join(",")
+      |> String.reverse()
+    end
+
+    [day, time1, f.(rank1), f.(comp1), time2, f.(rank2), f.(comp2)]
+  end)
+  |> Enum.sort_by(fn x ->
+    x
+    |> Enum.at(0)
+    |> String.to_integer()
   end)
   |> Enum.map(fn row ->
     {"tr", [],
