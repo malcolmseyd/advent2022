@@ -58,6 +58,7 @@ defmodule Main do
     end)
     |> tap(&IO.inspect(&1))
 
+    # part 2
     floor = bottom + 2
 
     # drop sand until it reaches bottom (falls forever)
