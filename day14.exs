@@ -70,7 +70,7 @@ defmodule Main do
       case drop_floor(cave, floor) do
         # sand rests at spawn position
         @sand_spawn ->
-          # zero indexed
+          # halt when nth sand grain rests at the spawn point
           {:halt, n}
 
         sand ->
