@@ -5,8 +5,8 @@ defmodule Main do
 
   def solve() do
     Advent.input(@day)
-    |> Strings.split("\n")
-    # |> tap(&IO.inspect(&1))
+    |> String.split("\n")
+    |> tap(&IO.inspect(&1))
   end
 
 end
