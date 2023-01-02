@@ -6,6 +6,7 @@
 
 # automatically downloaded input files
 input*.txt
+example*.txt
 
 # don't commit secrets!
 session.txt
